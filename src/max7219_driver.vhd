@@ -101,7 +101,7 @@ begin
     command_done_s <= true when bit_sent_index_s = 0 else false;
 
     -- Outputs
-    max7219_addr_s(7 downto 4) <= (others => '0');
+    max7219_addr_s(7 downto 4) <= (others => '0'); -- @todo fix this (tie to 0 only bits out of address range, which depends on generic)
     max7219_addr_s(3 downto 0) <= addr_i;
     max7219_data_s <= data_i;
     max7219_din_o  <= max7219_addr_s(bit_sent_index_s - 8) when bit_sent_index_s > 7
