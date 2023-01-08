@@ -12,10 +12,6 @@
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------
 
--- package max7219_pkg is
-    
--- end package;
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -50,9 +46,13 @@ architecture behavioural of max7219_wrapper is
     type max7219_macro_cmd_t is (init, write_all, write_addr);
     type state_t is (st_init, st_data_reg, st_wait_for_ready, st_send_next_cmd);
 
-    signal state_s         : state_t;
-    signal done_s          : std_logic;
-    signal cmd_list_done_s : std_logic;
+    signal state_s      : state_t;
+    signal start_s      : std_logic;
+    signal done_s       : std_logic;
+    signal done_last_s  : std_logic;
+    signal done_rose_s  : std_logic;
+    signal addr_s       : std_logic_vector(log2_ceil(num_addresses_g) - 1 downto 0);
+    signal data_s       : std_logic_vector(word_width_g - 1 downto 0);
 
     -- Init commands
     signal cmd_index_s      : integer := 0;
@@ -77,6 +77,9 @@ architecture behavioural of max7219_wrapper is
     constant max_cmds_c : positive := max(num_segments_g, num_init_cmds_c);
     type curr_cmd_list_t is array (0 to max_cmds_c - 1) of command_t;
     signal curr_cmd_list_s : curr_cmd_list_t;
+    signal curr_cmd_list_len_s : positive; -- Count the total number of commands to be sent from current command list
+    signal curr_cmd_list_index_s : positive; -- Count how many commands have been sent from current command list
+    signal cmd_list_done_s : std_logic;
 
 begin
 
@@ -90,8 +93,8 @@ begin
                 case state_s is
                     when st_init           => if (start_i = '1') then state_s <= st_data_reg; end if;
                     when st_data_reg       => state_s <= st_wait_for_ready;
-                    when st_wait_for_ready => if (done_s = '1') then state_s <= st_send_next_cmd; end if;
-                    when st_send_next_cmd  => if (cmd_list_done_s = '1') then state_s <= st_init; end if;
+                    when st_wait_for_ready => if (done_rose_s = '1') then state_s <= st_send_next_cmd; end if;
+                    when st_send_next_cmd  => state_s <= st_init when cmd_list_done_s = '1' else st_wait_for_ready;
                     when others            => state_s <= st_init;
                 end case;
             end if;
@@ -105,31 +108,62 @@ begin
         macro_cmd_id_v := max7219_macro_cmd_t'val(to_integer(unsigned(macro_cmd_i)));
         if rising_edge(clk_i) then
             case state_s is
-                when st_init =>
+                when st_init => -- @todo: is this initialization necessary? To remove?
                     for cmd_index in 0 to max_cmds_c - 1 loop
                         curr_cmd_list_s(cmd_index) <= (others => '0');
                     end loop;
+                    curr_cmd_list_len_s <= 0;
                 when st_data_reg =>
-                    if macro_cmd_id_v = init then
+                    if macro_cmd_id_v = write_addr then
                         curr_cmd_list_s(0).addr(log2_ceil(num_addresses_g) - 1 downto 0) <= addr_i;
                         curr_cmd_list_s(0).data <= data_i;
+                        curr_cmd_list_len_s <= 1;
                     elsif macro_cmd_id_v = init then
                         for cmd_index in 0 to num_init_cmds_c - 1 loop
                             curr_cmd_list_s(cmd_index) <= init_cmd_list_s(cmd_index);
                         end loop;
+                        curr_cmd_list_len_s <= num_init_cmds_c;
                     elsif macro_cmd_id_v = write_all then
                         for cmd_index in 0 to num_segments_g - 1 loop
                             curr_cmd_list_s(cmd_index).addr <= cmd_index + segment_id_offset_g;
                             curr_cmd_list_s(cmd_index).data <= data_all_i(cmd_index*word_width_g + word_width_g - 1 downto cmd_index*word_width_g);
                         end loop;
+                        curr_cmd_list_len_s <= num_segments_g;
                     end if;
             end case;
         end if;
     end process;
 
-    -- @todo cmd_list_done_s to be handled
-    -- @todo addr_s and data_s to be handled
-    -- @todo start_s to be handled
+    -- curr_cmd_list_index_s as iterator for list of commands
+    process (clk_i)
+    begin
+        if rising_edge(clk_i) then
+            case state_s is
+                when st_init          => curr_cmd_list_index_s <= 0;
+                when st_send_next_cmd => curr_cmd_list_index_s <= curr_cmd_list_index_s + 1;
+            end case;
+        end if;
+    end process;
+    cmd_list_done_s <= '1' when curr_cmd_list_index_s = curr_cmd_list_len_s - 2 else '0';
+    
+    -- done rising edge detector
+    process (clk_i)
+    begin
+        if rising_edge(clk_i) then
+            if rst_i = '1' then
+                done_last_s <= '0'; 
+            else
+                done_last_s <= done_s; 
+            end if;
+        end if;
+    end process;
+    done_rose_s <= '1' when done_last_s = '0' and done_s = '1' else '0';
+
+    start_s <= '1' when state_s = st_send_next_cmd else '0';
+
+    -- addr_s and data_s taken from command list
+    addr_s <= curr_cmd_list_s(curr_cmd_list_index_s).addr(log2_ceil(num_addresses_g) - 1 downto 0);
+    data_s <= curr_cmd_list_s(curr_cmd_list_index_s).data;  
 
     max7219_driver_inst : entity work.max7219_driver
     generic map (
