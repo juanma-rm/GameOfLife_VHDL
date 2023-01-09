@@ -143,11 +143,11 @@ begin
     process (clk_i)
     begin
         if rising_edge(clk_i) then
-            case state_s is
-                when st_init          => curr_cmd_list_index_s <= 0;
-                when st_send_next_cmd => if (done_s = '1') then curr_cmd_list_index_s <= curr_cmd_list_index_s + 1; end if;
-                when others           => 
-            end case;
+            if (state_s = st_init) then 
+                curr_cmd_list_index_s <= 0;
+            elsif (state_s = st_send_next_cmd and done_s = '1' and curr_cmd_list_index_s < curr_cmd_list_len_s - 1) then
+                curr_cmd_list_index_s <= curr_cmd_list_index_s + 1;
+            end if;
         end if;
     end process;
     cmd_list_last_s <= '1' when curr_cmd_list_index_s = curr_cmd_list_len_s - 1 else '0';
