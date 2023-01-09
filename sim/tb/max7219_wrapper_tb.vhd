@@ -87,10 +87,10 @@ begin
     -- Stimulus
     --------------------------------------------------------------
 
-    macro_cmd_i <= "00";
-    data_all_i <= (others => '0');
-    addr_i <= (others => '0');
-    data_i <= (others => '0');
-    start_i <= '1', '0' after 5 us;
+    macro_cmd_i <= "00", "10" after 10 us, "01" after 15 us;
+    data_all_i <= (others => '1');
+    addr_i <= (others => '1');
+    data_i <= (others => '1');
+    start_i <= '1', '0' after 20 us;
 
 end architecture;
