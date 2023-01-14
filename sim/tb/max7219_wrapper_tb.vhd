@@ -70,17 +70,17 @@ begin
             segment_id_offset_g => 1
         )
         port map (
-            clk_i         => clk_s,
-            rst_i         => rst_s,
-            macro_cmd_i   => macro_cmd_i,
-            data_all_i    => data_all_i,
-            addr_i        => addr_i,
-            data_i        => data_i,
-            start_i       => start_i,
-            done_o        => done_o,
-            max7219_clk_o => max7219_clk_o,
-            max7219_din_o => max7219_din_o,
-            max7219_csn_o => max7219_csn_o
+            clk_i            => clk_s,
+            rst_i            => rst_s,
+            macro_cmd_i      => macro_cmd_i,
+            data_all_i       => data_all_i,
+            addr_i           => addr_i,
+            data_i           => data_i,
+            start_i          => start_i,
+            macro_cmd_done_o => done_o,
+            max7219_clk_o    => max7219_clk_o,
+            max7219_din_o    => max7219_din_o,
+            max7219_csn_o    => max7219_csn_o
         );
 
     --------------------------------------------------------------
