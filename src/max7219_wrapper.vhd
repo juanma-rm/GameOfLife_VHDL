@@ -27,17 +27,17 @@ entity max7219_wrapper is
 
     );
     port (
-        clk_i         : in  std_logic;
-        rst_i         : in  std_logic;
-        macro_cmd_i   : in  std_logic_vector(log2_ceil(num_macro_cmds_g) - 1 downto 0);
-        data_all_i    : in  std_logic_vector(num_segments_g*word_width_g - 1 downto 0);
-        addr_i        : in  std_logic_vector(log2_ceil(num_addresses_g) - 1 downto 0);
-        data_i        : in  std_logic_vector(word_width_g - 1 downto 0);
-        start_i       : in  std_logic;
-        done_o        : out std_logic;
-        max7219_clk_o : out std_logic;
-        max7219_din_o : out std_logic;
-        max7219_csn_o : out std_logic
+        clk_i            : in  std_logic;
+        rst_i            : in  std_logic;
+        macro_cmd_i      : in  std_logic_vector(log2_ceil(num_macro_cmds_g) - 1 downto 0);
+        data_all_i       : in  std_logic_vector(num_segments_g*word_width_g - 1 downto 0);
+        addr_i           : in  std_logic_vector(log2_ceil(num_addresses_g) - 1 downto 0);
+        data_i           : in  std_logic_vector(word_width_g - 1 downto 0);
+        start_i          : in  std_logic;
+        macro_cmd_done_o : out std_logic;
+        max7219_clk_o    : out std_logic;
+        max7219_din_o    : out std_logic;
+        max7219_csn_o    : out std_logic
     );
 end entity;
 
@@ -153,18 +153,19 @@ begin
     cmd_list_last_s <= '1' when curr_cmd_list_index_s = curr_cmd_list_len_s - 1 else '0';
 
     start_s <= '1' when state_s = st_wait_for_ready else '0';
+    macro_cmd_done_o <= '1' when state_s = st_init else '0';
 
     -- addr_s and data_s taken from command list
     addr_s <= curr_cmd_list_s(curr_cmd_list_index_s).addr(log2_ceil(num_addresses_g) - 1 downto 0);
     data_s <= curr_cmd_list_s(curr_cmd_list_index_s).data;  
 
+    -- driver instance
     max7219_driver_inst : entity work.max7219_driver
     generic map (
         num_segments_g  => num_segments_g,
         word_width_g    => word_width_g,
         num_addresses_g => num_addresses_g
-    )
-    port map (
+        ) port map (
         clk_i         => clk_i,
         rst_i         => rst_i,
         addr_i        => addr_s,
@@ -178,8 +179,5 @@ begin
         data_o        => open,
         state_slv_o   => open
     );
-
-    -- Outputs
-    done_o <= done_s;
 
 end architecture;
