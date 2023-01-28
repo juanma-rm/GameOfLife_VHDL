@@ -29,14 +29,14 @@
 -- Internal package
 ----------------------------------------------------------------------------------
 
--- use work.utils_pkg.all;
+use work.utils_pkg.all;
 
--- package max7219_pkg is
---     constant command_width_c : positive := 16; -- (msb) 4-bit dummy, 4-bit address, 8-bit data (lsb)
---     constant num_addresses_c : positive := 16;
---     constant addr_width_c    : positive := log2_ceil(num_addresses_c);
---     constant word_width_c    : positive := 8;
--- end package;
+package max7219_pkg is
+    constant command_width_c : positive := 16; -- (msb) 4-bit dummy, 4-bit address, 8-bit data (lsb)
+    constant num_addresses_c : positive := 16;
+    constant addr_width_c    : positive := log2_ceil(num_addresses_c);
+    constant word_width_c    : positive := 8;
+end package;
 
 ----------------------------------------------------------------------------------
 -- Libraries
@@ -46,7 +46,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.utils_pkg.all;
--- use work.max7219_pkg.all;
+use work.max7219_pkg.all;
 
 ----------------------------------------------------------------------------------
 -- Entity
@@ -56,8 +56,8 @@ entity max7219_driver is
     port (
         clk_i         : in  std_logic;
         rst_i         : in  std_logic;
-        addr_i        : in  std_logic_vector(4 - 1 downto 0);
-        data_i        : in  std_logic_vector(8 - 1 downto 0);
+        addr_i        : in  std_logic_vector(addr_width_c - 1 downto 0);
+        data_i        : in  std_logic_vector(word_width_c - 1 downto 0);
         start_i       : in  std_logic;
         done_o        : out std_logic;
         max7219_clk_o : out std_logic;
@@ -71,12 +71,6 @@ end entity;
 ----------------------------------------------------------------------------------
 
 architecture behavioural of max7219_driver is
-
-    constant command_width_c : positive := 16; -- (msb) 4-bit dummy, 4-bit address, 8-bit data (lsb)
-    constant num_addresses_c : positive := 16;
-    constant addr_width_c    : positive := log2_ceil(num_addresses_c);
-    constant word_width_c    : positive := 8;
-
 
     type state_t is (st_init, st_enable_csn, st_send_data);
     signal state_s : state_t;
