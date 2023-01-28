@@ -88,11 +88,6 @@ begin
     --------------------------------------------------------------
 
     max7219_driver_inst : entity work.max7219_driver
-        generic map (
-            num_segments_g  => num_segments_c,
-            word_width_g    => word_width_c,
-            num_addresses_g => num_addresses_c
-        )
         port map (
             clk_i         => clk_s,
             rst_i         => rst_s,
@@ -102,13 +97,9 @@ begin
             done_o        => done_s,
             max7219_clk_o => open,
             max7219_din_o => open,
-            max7219_csn_o => open,
-            addr_o        => open,
-            data_o        => open,
-            state_slv_o   => open
+            max7219_csn_o => open
         );
   
-
     --------------------------------------------------------------
     -- Stimulus
     --------------------------------------------------------------

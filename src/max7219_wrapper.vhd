@@ -161,11 +161,7 @@ begin
 
     -- driver instance
     max7219_driver_inst : entity work.max7219_driver
-    generic map (
-        num_segments_g  => num_segments_g,
-        word_width_g    => word_width_g,
-        num_addresses_g => num_addresses_g
-        ) port map (
+    port map (
         clk_i         => clk_i,
         rst_i         => rst_i,
         addr_i        => addr_s,
@@ -174,10 +170,7 @@ begin
         done_o        => done_s,
         max7219_clk_o => max7219_clk_o,
         max7219_din_o => max7219_din_o,
-        max7219_csn_o => max7219_csn_o,
-        addr_o        => open,
-        data_o        => open,
-        state_slv_o   => open
+        max7219_csn_o => max7219_csn_o
     );
 
 end architecture;
