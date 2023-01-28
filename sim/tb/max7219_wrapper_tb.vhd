@@ -62,13 +62,6 @@ begin
     --------------------------------------------------------------
 
     max7219_wrapper_inst : entity work.max7219_wrapper
-        generic map (
-            num_segments_g      => 8,
-            word_width_g        => 8,
-            num_addresses_g     => 16,
-            num_macro_cmds_g    => 3,
-            segment_id_offset_g => 1
-        )
         port map (
             clk_i            => clk_s,
             rst_i            => rst_s,
