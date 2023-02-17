@@ -23,6 +23,7 @@ package cells_pkg is
     end record;
     type cell_array_t is array (0 to num_rows_c, 0 to num_cols_c) of cell_t;
     function cells_array_init (constant value : in std_logic) return cell_array_t;
+    procedure cells_array_set (signal cells_arr : inout cell_array_t; constant value : in std_logic);
     function cells_array_to_slv (constant cells_arr : in cell_array_t) return std_logic_vector;
     type neighbour_pos_t is (top_left, top_center, top_right, left, right, bottom_left, bottom_center, bottom_right);
     function cells_get_neigh_state (constant cells_arr : in cell_array_t; constant row : in natural; constant col : in natural; constant neighbour_pos : in neighbour_pos_t) return integer;
@@ -42,6 +43,15 @@ package body cells_pkg is
         end loop;
         return cells_arr;
     end function;
+
+    procedure cells_array_set (signal cells_arr : inout cell_array_t; constant value : in std_logic) is
+    begin
+        for row in 0 to num_rows_c-1 loop
+            for col in 0 to num_cols_c-1 loop
+                cells_arr(row,col).state <= value;
+            end loop;
+        end loop;
+    end procedure;    
 
     function cells_array_to_slv (constant cells_arr : in cell_array_t) return std_logic_vector is
         variable slv : std_logic_vector(num_rows_c*num_cols_c - 1 downto 0);
@@ -183,6 +193,16 @@ begin
     end process;
 
     done_o <= '1' when (state_s = st_wait) else '0';
+
+    -- Reset cells array
+    process (clk_i)
+    begin
+        if rising_edge(clk_i) then
+            if state_s = st_init then
+                cells_array_set (cells_prev_s, '1');
+            end if;
+        end if;
+    end process;
 
     -- Update cells_next with next generation states
     process (clk_i)
