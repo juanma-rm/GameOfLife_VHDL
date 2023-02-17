@@ -58,8 +58,6 @@ package body cells_pkg is
         variable neighbour : cell_t;
         variable state     : integer;
     begin
-        report "row: " & integer'image(row);
-        report "col: " & integer'image(col);
         if      (neighbour_pos = top_left     ) then neighbour := cells_arr(row-1,col-1);
         elsif   (neighbour_pos = top_center   ) then neighbour := cells_arr(row-1,col  );
         elsif   (neighbour_pos = top_right    ) then neighbour := cells_arr(row-1,col+1);
