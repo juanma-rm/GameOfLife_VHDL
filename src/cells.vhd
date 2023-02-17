@@ -67,7 +67,7 @@ package body cells_pkg is
         elsif   (neighbour_pos = bottom_center) then neighbour := cells_arr(row+1,col  );
         elsif   (neighbour_pos = bottom_right ) then neighbour := cells_arr(row+1,col+1);
         end if;
-        if (neighbour.state) then state := 1; else state := 0; end if;
+        if (neighbour.state = '1') then state := 1; else state := 0; end if;
         return state;
     end function;
 
