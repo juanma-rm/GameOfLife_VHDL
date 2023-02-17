@@ -45,9 +45,6 @@ architecture behavioural of game_of_life_top is
 
 begin
 
-
-    -- max7219 test
-
     -- Register done_o signal
     process (clk_i) 
     begin
@@ -87,19 +84,12 @@ begin
         end if;
     end process;
 
-    data_all_i <= "1100000011000000001000000001000000001000000001000000001100000011";
+    data_all_i <= "1100000011000000001000000001000000001000000001000001111100001111";
     addr_i     <= "0001";
-    data_i     <= "01010111";
+    data_i     <= "11000111";
 
     -- max7219
     max7219_wrapper_inst : entity work.max7219_wrapper
-        generic map (
-            num_segments_g      => 8,
-            word_width_g        => 8,
-            num_addresses_g     => 16,
-            num_macro_cmds_g    => 3,
-            segment_id_offset_g => 1
-        )
         port map (
             clk_i            => clk_i,
             rst_i            => rst_i,
