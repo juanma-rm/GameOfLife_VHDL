@@ -194,16 +194,6 @@ begin
 
     done_o <= '1' when (state_s = st_wait) else '0';
 
-    -- Reset cells array
-    process (clk_i)
-    begin
-        if rising_edge(clk_i) then
-            if state_s = st_init then
-                cells_array_set (cells_prev_s, '1');
-            end if;
-        end if;
-    end process;
-
     -- Update cells_next with next generation states
     process (clk_i)
     begin
@@ -222,7 +212,9 @@ begin
     process (clk_i)
     begin
         if rising_edge(clk_i) then
-            if state_s = st_update_prev then
+            if state_s = st_init then
+                cells_array_set (cells_prev_s, '1');
+            elsif state_s = st_update_prev then
                 for row in 0 to num_rows_c-1 loop
                     for col in 0 to num_cols_c-1 loop
                         cells_prev_s(row, col).state <= cells_next_s(row,col).state;
