@@ -4,8 +4,8 @@ use ieee.math_real.all;
 
 package utils_pkg is
 
-    constant num_rows_c    : positive := 4;
-    constant num_cols_c    : positive := 4;
+    constant num_rows_c    : positive := 8;
+    constant num_cols_c    : positive := 8;
 
     pure function log2_ceil(i : positive) return natural; 
     pure function max(a : positive; b : positive) return positive;
