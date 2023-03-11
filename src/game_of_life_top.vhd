@@ -22,9 +22,7 @@ entity game_of_life_top is
         max7219_csn_o : out std_logic := '1';
 
         -- temp
-        macro_cmd_o   : out std_logic_vector(2 - 1 downto 0);
-        start_o       : out std_logic;
-        done_rose_o   : out std_logic
+        next_iter_i   : in std_logic
     );
 end entity;
 
@@ -38,12 +36,15 @@ architecture behavioural of game_of_life_top is
     signal start_i       : std_logic;
     signal done_o        : std_logic;
 
-    -- max7219 test
+    -- cells test
     signal done_last_s   : std_logic;
     signal done_rose_s   : std_logic;
     signal count_s       : integer := 0;
+    signal next_gen_done_s : std_logic;
 
 begin
+
+    -- cells test
 
     -- Register done_o signal
     process (clk_i) 
@@ -57,10 +58,6 @@ begin
 
     -- done_rose_s goes high if done rose during last cycle
     done_rose_s <= '1' when (done_last_s = '0' and done_o = '1') else '0';
-
-    -- TEMP DEBUG
-    start_o <= start_i;
-    macro_cmd_o <= macro_cmd_i;
     
     -- Count up when done_rose_s; count determines next macro command to send
     process (clk_i)
@@ -77,16 +74,20 @@ begin
     begin
         if rising_edge(clk_i) then
             if    count_s = 1 then start_i <= '1'; macro_cmd_i <= "00"; -- initialization
-            elsif count_s = 2 then start_i <= '1'; macro_cmd_i <= "01"; -- write_all (diagonal line of leds on)
-            elsif count_s = 3 then start_i <= '1'; macro_cmd_i <= "10"; -- third row all 1s
-            else                   start_i <= '0'; macro_cmd_i <= "10";
+            else                   start_i <= '1'; macro_cmd_i <= "01"; -- write_all
             end if;
         end if;
     end process;
 
-    data_all_i <= "1100000011000000001000000001000000001000000001000001111100001111";
-    addr_i     <= "0001";
-    data_i     <= "11000111";
+
+    cells_isnt : entity work.cells
+        port map (
+            clk_i         => clk_i,
+            rst_i         => rst_i,
+            next_iter_i   => next_iter_i,
+            done_o        => next_gen_done_s,
+            cells_arr_o   => data_all_i
+        );
 
     -- max7219
     max7219_wrapper_inst : entity work.max7219_wrapper
@@ -95,9 +96,9 @@ begin
             rst_i            => rst_i,
             macro_cmd_i      => macro_cmd_i,
             data_all_i       => data_all_i,
-            addr_i           => addr_i,
-            data_i           => data_i,
-            start_i          => start_i,
+            addr_i           => (others => '0'),
+            data_i           => (others => '0'),
+            start_i          => next_gen_done_s,
             macro_cmd_done_o => done_o,
             max7219_clk_o    => max7219_clk_o,
             max7219_din_o    => max7219_din_o,
