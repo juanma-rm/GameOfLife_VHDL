@@ -31,7 +31,7 @@ package button_handler_pkg is
     type released_t is array (num_buttons_c-1 downto 0) of boolean;
 
     type event_t is (no_event, short_press, long_press);
-    type events_arr_t is array (0 to num_buttons_c-1) of event_t;
+    type events_arr_t is array (num_buttons_c-1 downto 0) of event_t;
 
 end package;
 
@@ -53,7 +53,8 @@ entity button_handler is
         clk_i           : in  std_logic;
         rst_i           : in  std_logic;
         buttons_raw_i   : in  std_logic_vector(num_buttons_c-1 downto 0);
-        buttons_evnts_o : out events_arr_t
+        buttons_evnts_o : out events_arr_t;
+        event_read_i    : in  std_logic_vector(num_buttons_c-1 downto 0)
     );
 end entity;
 
@@ -67,7 +68,6 @@ architecture behavioural of button_handler is
     signal buttons_sync_last_s : buttons_sync_last_t;
     signal counter_pressed_s   : counter_pressed_t;
     signal released_s          : released_t;
-    signal events_arr_s        : events_arr_t;
 
 begin
 
@@ -102,8 +102,8 @@ begin
     begin
         for i in 0 to num_buttons_c-1 loop
             if rising_edge(clk_i) then
-                if    (rst_i = '1' or buttons_sync_s(i)(1) = '0')                                     then counter_pressed_s(i) <= 0;
-                elsif (buttons_sync_s(i)(1) = '1' and counter_pressed_s(i) <= period_long_ticks_c+1 ) then counter_pressed_s(i) <= counter_pressed_s(i) + 1;
+                if    (rst_i = '1' or buttons_sync_s(i)(1) = '0')                                  then counter_pressed_s(i) <= 0;
+                elsif (buttons_sync_s(i)(1) = '1' and counter_pressed_s(i) < period_long_ticks_c ) then counter_pressed_s(i) <= counter_pressed_s(i) + 1;
                 end if;
             end if;
         end loop;
@@ -114,11 +114,11 @@ begin
     begin
         for i in 0 to num_buttons_c-1 loop
             if rising_edge(clk_i) then
-                if    (rst_i = '1'  ) then events_arr_s(i) <= no_event;
+                if    (rst_i = '1' or event_read_i(i) = '1')               then buttons_evnts_o(i) <= no_event;
                 elsif (released_s(i)) then 
-                    if    (counter_pressed_s(i) < period_debounce_ticks_c) then events_arr_s(i) <= no_event;
-                    elsif (counter_pressed_s(i) < period_long_ticks_c    ) then events_arr_s(i) <= short_press;
-                    else                                                        events_arr_s(i) <= long_press;
+                    if    (counter_pressed_s(i) < period_debounce_ticks_c) then buttons_evnts_o(i) <= no_event;
+                    elsif (counter_pressed_s(i) < period_long_ticks_c    ) then buttons_evnts_o(i) <= short_press;
+                    else                                                        buttons_evnts_o(i) <= long_press;
                     end if;
                 end if;
             end if;
