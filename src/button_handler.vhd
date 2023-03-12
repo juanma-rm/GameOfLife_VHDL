@@ -22,12 +22,12 @@ package button_handler_pkg is
     type buttons_sync_t is array (num_buttons_c-1 downto 0) of std_logic_vector(1 downto 0);
     type buttons_sync_last_t is array (num_buttons_c-1 downto 0) of std_logic; -- Register for buttons_sync(last)
 
-    constant freq_khz_c              : positive := 1000;
-    constant period_debounce_ms_c    : positive := 50;
-    constant period_long_ms_c        : positive := 2000;
-    constant period_debounce_ticks_c : positive := integer(period_debounce_ms_c/1000)/(1/freq_khz_c*1000);
-    constant period_long_ticks_c     : positive := integer(period_long_ms_c/1000)/(1/freq_khz_c*1000);
-    type counter_pressed_t is array (num_buttons_c-1 downto 0) of integer range 0 to period_long_ticks_c+1;
+    constant freq_khz_c              : real := 1000.0;
+    constant period_debounce_ms_c    : real := 50.0;
+    constant period_long_ms_c        : real := 2000.0;
+    constant period_debounce_ticks_c : positive := integer( (period_debounce_ms_c/1000.0) / (1.0/(freq_khz_c*1000.0)) ) ;
+    constant period_long_ticks_c     : positive := integer( (period_long_ms_c/1000.0) / (1.0/(freq_khz_c*1000.0)) );
+    type counter_pressed_t is array (num_buttons_c-1 downto 0) of integer range 0 to period_long_ticks_c;
     type released_t is array (num_buttons_c-1 downto 0) of boolean;
 
     type event_t is (no_event, short_press, long_press);
