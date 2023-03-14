@@ -121,12 +121,13 @@ begin
     begin
         for i in 0 to num_buttons_c-1 loop
             if rising_edge(clk_i) then
-                if    (rst_i = '1' or event_read_i(i) = '1')               then buttons_evnts_o(i) <= no_event;
+                if    (rst_i = '1')                                        then buttons_evnts_o(i) <= no_event;
                 elsif (released_s(i)) then 
                     if    (counter_pressed_s(i) < period_debounce_ticks_c) then buttons_evnts_o(i) <= no_event;
                     elsif (counter_pressed_s(i) < period_long_ticks_c    ) then buttons_evnts_o(i) <= short_press;
                     else                                                        buttons_evnts_o(i) <= long_press;
                     end if;
+                elsif (event_read_i(i) = '1')                              then buttons_evnts_o(i) <= no_event;
                 end if;
             end if;
         end loop;
