@@ -18,7 +18,14 @@ use ieee.numeric_std.all;
 package button_handler_pkg is
 
     constant num_buttons_c : positive := 5;
-    type buttons_ids_t is (butUP, butDOWN, butLEFT, butRIGHT, butCENTER);
+    type buttons_ids_t is record 
+        butCENTER : integer;
+        butUP     : integer;
+        butDOWN   : integer;
+        butLEFT   : integer;
+        butRIGHT  : integer;
+    end record;
+    constant buttons_ids_c : buttons_ids_t := (butCENTER => 0, butUP => 1, butDOWN => 2, butLEFT => 3, butRIGHT => 4);
     type buttons_sync_t is array (num_buttons_c-1 downto 0) of std_logic_vector(1 downto 0);
     type buttons_sync_last_t is array (num_buttons_c-1 downto 0) of std_logic; -- Register for buttons_sync(last)
 
