@@ -91,7 +91,7 @@ begin
     begin
         if rising_edge(clk_i) then
             if    rst_i = '1'         then cells_array_set (board_arr_s, '1');
-            elsif cmd_i = toggle_cell then board_arr_s(cursor_s.posY, cursor_s.posX).state <= not board_arr_s(cursor_s.posY, cursor_s.posX).state;
+            elsif cmd_i = toggle_cell then board_arr_s(cursor_s.posX, cursor_s.posY).state <= not board_arr_s(cursor_s.posX, cursor_s.posY).state;
             end if;
         end if;
     end process;
