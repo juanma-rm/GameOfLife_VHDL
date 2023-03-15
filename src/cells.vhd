@@ -87,41 +87,23 @@ package body cells_pkg is
     begin
         -- Count alive cells in neighbourhood
         -- Top left corner
-        if (row = 0 and col = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        if    (row = 0 and col = 0                      ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         -- Top right corner
-        elsif (row = 0 and col = num_cols_c-1) then 
-            -- num_neigh_alive := unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
+        elsif (row = 0 and col = num_cols_c-1           ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
         -- Top (no corner)
-        elsif (row = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        elsif (row = 0                                  ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         -- Bottom left corner
-        elsif (row = num_rows_c-1 and col = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state) + unsigned(cells_arr(row,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
+        elsif (row = num_rows_c-1 and col = 0           ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
         -- Bottom right corner
-        elsif (row = num_rows_c-1 and col = num_cols_c-1) then 
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row,col-1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left);
+        elsif (row = num_rows_c-1 and col = num_cols_c-1) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left);
         -- Bottom (no corner)
-        elsif (row = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
+        elsif (row = num_rows_c-1                       ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
         -- Left (no corner)
-        elsif (col = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        elsif (col = 0                                  ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         -- Right (no corner)
-        elsif (col = num_cols_c-1) then
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
+        elsif (col = num_cols_c-1                       ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
         -- Other (no corner) - 9 neighbours
-        else
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state) + unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        else                                                   num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         end if;
 
         -- If any condition for cell alive is met, next state will be alive
@@ -153,8 +135,9 @@ entity cells is
         clk_i         : in  std_logic;
         rst_i         : in  std_logic;
         next_iter_i   : in  std_logic;
+        cells_arr_i   : in cell_array_t;
         done_o        : out std_logic;
-        cells_arr_o   : out std_logic_vector(num_rows_c*num_cols_c - 1 downto 0)
+        cells_arr_o   : out cell_array_t
     );
 end entity;
 
@@ -164,15 +147,13 @@ end entity;
 
 architecture behavioural of cells is
 
-    signal cells_prev_s : cell_array_t := cells_array_init('1');
-    signal cells_next_s : cell_array_t := (others => (others => (state => '0')));
+    signal cells_prev_s : cell_array_t;
+    signal cells_next_s : cell_array_t;
 
     type state_t is (st_init, st_wait, st_calculate, st_update_prev);
     signal state_s      : state_t;
 
 begin
-    
-    cells_arr_o <= cells_array_to_slv(cells_prev_s);
 
     -- FSM
     process (clk_i)
@@ -183,9 +164,9 @@ begin
             else
                 case state_s is
                     when st_init        => state_s <= st_wait;
-                    when st_wait        => if (next_iter_i = '1') then state_s <= st_calculate; end if;
-                    when st_calculate   => state_s <= st_update_prev;
-                    when st_update_prev => state_s <= st_wait;
+                    when st_wait        => if (next_iter_i = '1') then state_s <= st_update_prev; end if;
+                    when st_update_prev => state_s <= st_calculate;
+                    when st_calculate   => state_s <= st_wait;
                     when others         => state_s <= st_init;
                 end case;
             end if;
@@ -193,6 +174,16 @@ begin
     end process;
 
     done_o <= '1' when (state_s = st_wait) else '0';
+
+    -- Update cells_prev with input data
+    process (clk_i)
+    begin
+        if rising_edge(clk_i) then
+            if    state_s = st_init        then cells_array_set (cells_prev_s, '1');
+            elsif state_s = st_update_prev then cells_prev_s <= cells_arr_i;
+            end if;
+        end if;
+    end process;
 
     -- Update cells_next with next generation states
     process (clk_i)
@@ -207,21 +198,6 @@ begin
             end if;
         end if;
     end process;
-
-    -- Update cells_prev once next generation is calculated
-    process (clk_i)
-    begin
-        if rising_edge(clk_i) then
-            if state_s = st_init then
-                cells_array_set (cells_prev_s, '1');
-            elsif state_s = st_update_prev then
-                for row in 0 to num_rows_c-1 loop
-                    for col in 0 to num_cols_c-1 loop
-                        cells_prev_s(row, col).state <= cells_next_s(row,col).state;
-                    end loop;
-                end loop;
-            end if;
-        end if;
-    end process;
+    cells_arr_o <= cells_next_s;
 
 end architecture;
