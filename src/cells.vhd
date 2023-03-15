@@ -87,41 +87,23 @@ package body cells_pkg is
     begin
         -- Count alive cells in neighbourhood
         -- Top left corner
-        if (row = 0 and col = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        if    (row = 0 and col = 0                      ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         -- Top right corner
-        elsif (row = 0 and col = num_cols_c-1) then 
-            -- num_neigh_alive := unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
+        elsif (row = 0 and col = num_cols_c-1           ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
         -- Top (no corner)
-        elsif (row = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        elsif (row = 0                                  ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         -- Bottom left corner
-        elsif (row = num_rows_c-1 and col = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state) + unsigned(cells_arr(row,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
+        elsif (row = num_rows_c-1 and col = 0           ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
         -- Bottom right corner
-        elsif (row = num_rows_c-1 and col = num_cols_c-1) then 
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row,col-1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left);
+        elsif (row = num_rows_c-1 and col = num_cols_c-1) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left);
         -- Bottom (no corner)
-        elsif (row = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
+        elsif (row = num_rows_c-1                       ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right);
         -- Left (no corner)
-        elsif (col = 0) then
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        elsif (col = 0                                  ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         -- Right (no corner)
-        elsif (col = num_cols_c-1) then
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
+        elsif (col = num_cols_c-1                       ) then num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_left);
         -- Other (no corner) - 9 neighbours
-        else
-            -- num_neigh_alive := unsigned(cells_arr(row-1,col-1).state) + unsigned(cells_arr(row-1,col).state) + unsigned(cells_arr(row-1,col+1).state) + unsigned(cells_arr(row,col-1).state) + unsigned(cells_arr(row,col+1).state) + unsigned(cells_arr(row+1,col-1).state) + unsigned(cells_arr(row+1,col).state) + unsigned(cells_arr(row+1,col+1).state);
-            num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
+        else                                                   num_neigh_alive := cells_get_neigh_state(cells_arr, row, col, top_left) + cells_get_neigh_state(cells_arr, row, col, top_center) + cells_get_neigh_state(cells_arr, row, col, top_right) + cells_get_neigh_state(cells_arr, row, col, left) + cells_get_neigh_state(cells_arr, row, col, right) + cells_get_neigh_state(cells_arr, row, col, bottom_left) + cells_get_neigh_state(cells_arr, row, col, bottom_center) + cells_get_neigh_state(cells_arr, row, col, bottom_right);
         end if;
 
         -- If any condition for cell alive is met, next state will be alive
