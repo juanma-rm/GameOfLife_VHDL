@@ -61,6 +61,8 @@ architecture behavioural of game_of_life_top is
     signal next_iter_s     : std_logic;
     signal next_gen_done_s : std_logic;
     signal cells_lastgen_s : cell_array_t;
+    constant gen_ctr_ticks_c : integer := 1000000; -- 1M@1MHz = 1 s
+    signal gen_count_s       : integer;    
     
     -- Muxs
     signal cells_mux_s : cell_array_t;
@@ -86,6 +88,7 @@ begin
                     when st_hw_init    => if    (max7219_done_s = '1'                                  ) then state_s <= st_board_init ; end if;
                     when st_board_init => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = long_press ) then state_s <= st_pause      ; end if;
                     when st_pause      => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = short_press) then state_s <= st_run_iter;
+                                          elsif (gen_count_s = 0 and mode_continuous_s                 ) then state_s <= st_run_iter;
                                           elsif (buttons_evnts_s(buttons_ids_c.butDOWN  ) = long_press ) then state_s <= st_board_init ; end if;
                     when st_run_iter   => if    (next_gen_done_s = '1' or mode_continuous_s            ) then state_s <= st_pause      ; end if;
                 end case;
@@ -97,11 +100,20 @@ begin
     process (clk_i) 
     begin
         if rising_edge(clk_i) then
-            if    rst_i = '1'                                                               then mode_continuous_s <= false;
-            elsif state_s = st_pause and buttons_evnts_s(buttons_ids_c.butUP) = short_press then mode_continuous_s <= not mode_continuous_s;
+            if    rst_i = '1'                                                                                         then mode_continuous_s <= false;
+            elsif (state_s = st_pause or state_s = st_run_iter) and buttons_evnts_s(buttons_ids_c.butUP) = long_press then mode_continuous_s <= not mode_continuous_s;
             end if;
         end if;
     end process;
+    process (clk_i)
+    begin
+        if rising_edge(clk_i) then
+            if    state_s = st_reset              then gen_count_s <= 0;
+            elsif gen_count_s < gen_ctr_ticks_c-1 then gen_count_s <= gen_count_s+1;
+            else                                       gen_count_s <= 0;
+            end if;
+        end if;
+    end process;    
 
     -- first pause
     process (clk_i) 
