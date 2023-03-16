@@ -66,11 +66,12 @@ architecture behavioural of game_of_life_top is
     signal cells_mux_s : cell_array_t;
 
     -- max7219
-    signal max7219_cmd_s  : std_logic_vector(log2_ceil(num_macro_cmds_c)-1 downto 0);
-    signal max7219_done_s : std_logic;
+    signal max7219_cmd_s      : std_logic_vector(log2_ceil(num_macro_cmds_c)-1 downto 0);
+    signal max7219_done_s     : std_logic;
     signal max7219_data_all_s : std_logic_vector(num_segments_c*word_width_c - 1 downto 0);
-    signal max7219_start_s: std_logic;
-    signal count_s        : integer;
+    signal max7219_start_s    : std_logic;
+    constant refresh_ticks_c  : integer := 100000; -- 100k@1MHz = 100 ms
+    signal refresh_count_s    : integer;
     
 begin
 
@@ -173,17 +174,17 @@ begin
     process (clk_i)
     begin
         if rising_edge(clk_i) then
-            if    state_s = st_reset then count_s <= 0;
-            elsif count_s < 100000   then count_s <= count_s+1;
-            else                          count_s <= 0;
+            if    state_s = st_reset                  then refresh_count_s <= 0;
+            elsif refresh_count_s < refresh_ticks_c-1 then refresh_count_s <= refresh_count_s+1;
+            else                                           refresh_count_s <= 0;
             end if;
         end if;
     end process;
-    process (state_s, count_s)
+    process (state_s, refresh_count_s)
     begin
         max7219_start_s <= '0';
         if    state_s = st_hw_init and max7219_done_s = '1' then max7219_start_s <= '1';
-        elsif count_s = 0 and max7219_done_s = '1'          then max7219_start_s <= '1';
+        elsif refresh_count_s = 0 and max7219_done_s = '1'  then max7219_start_s <= '1';
         end if;
     end process;
     max7219_cmd_s <= "00" when (state_s = st_reset or state_s = st_hw_init) else "01"; -- initialize during reset. @todo: replace macro_cmd_i input type by max7219_macro_cmd_t type and use commands instead of "00" or "01"
