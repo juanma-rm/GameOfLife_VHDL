@@ -11,7 +11,8 @@
 
 ## About the project <a name="About-The-Project"></a>
 
-<video width="620" controls><source src="pics/video1.mp4"> </video>
+https://user-images.githubusercontent.com/41286765/226129758-f1eec1a3-0e8d-4829-b4d0-ad51c01c9ed5.mp4
+
 
 This project consists in a VHDL version of Game of Life, which could be considered more of an experiment and was conceived by mathematician John Conway. The main idea is described as follows. There is a bidimensional grid (let's call it the board, the world, the space dimensions) inhabited by cells (each taking one single space unit) that may born, die or keep its state according to the number of alive neighbors at the given moment. For each new generation (minimum time unit, time resolution, Planck's interval, whatever), each cell's fate shall be determined by the following set of simple rules:
 * Any live cell with fewer than two live neighbors dies, as if by underpopulation.
