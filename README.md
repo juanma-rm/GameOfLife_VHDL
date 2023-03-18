@@ -39,7 +39,7 @@ Summary: the motivation for this project is much simpler than all the biblical t
 </p>
 
 <p align="justify">
-Now you could be about to ask me if I am in my senses as I have used a Kria KV260 board (a bit over-powered for this task); well, let me justify that: 1\) I like reusing my current stuff (small attempt to minimize the amount of electronics components in my drawers) and 2\) this was to me an introductory project to get familiarized with Kria KV260 system in terms of programmable logic, pmod, Vivado, logic, constraints... I could have stopped at 3% of this project as I had already worked with Zynq US+ architecture before and only needed to load some basic bitstream and PS initialization (processing system) to check everything was up and running, but I get fun doing this :)
+Now you could be about to ask me if I am in my senses as I have used a Kria KV260 board (a bit over-powered for this task); well, let me justify that: 1) I like reusing my current stuff (small attempt to minimize the amount of electronics components in my drawers) and 2) this was to me an introductory project to get familiarized with Kria KV260 system in terms of programmable logic, pmod, Vivado, logic, constraints... I could have stopped at 3% of this project as I had already worked with Zynq US+ architecture before and only needed to load some basic bitstream and PS initialization (processing system) to check everything was up and running, but I get fun doing this :)
 </p>
 
 <img src="pics/pic1.png" alt="drawing" width="620">
