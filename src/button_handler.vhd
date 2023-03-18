@@ -30,7 +30,7 @@ package button_handler_pkg is
     type buttons_sync_last_t is array (num_buttons_c-1 downto 0) of std_logic; -- Register for buttons_sync(last)
 
     constant freq_khz_c              : real := 1000.0;
-    constant period_debounce_ms_c    : real := 50.0;
+    constant period_debounce_ms_c    : real := 5.0;
     constant period_long_ms_c        : real := 2000.0;
     constant period_debounce_ticks_c : positive := integer( (period_debounce_ms_c/1000.0) / (1.0/(freq_khz_c*1000.0)) ) ;
     constant period_long_ticks_c     : positive := integer( (period_long_ms_c/1000.0) / (1.0/(freq_khz_c*1000.0)) );
