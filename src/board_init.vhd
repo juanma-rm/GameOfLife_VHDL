@@ -36,11 +36,15 @@ use work.cells_pkg.all;
 ----------------------------------------------------------------------------------
 
 entity board_init is
-    port (
-        clk_i       : in std_logic;
-        rst_i       : in std_logic;
-        cmd_i       : in board_init_cmd_t;
-        board_arr_o : out cell_array_t
+    generic (
+        one_s_max_c : positive := 16
+    ); port (
+        clk_i        : in  std_logic;
+        rst_i        : in  std_logic;
+        cmd_i        : in  board_init_cmd_t;
+        board_arr_o  : out cell_array_t;
+        blinky_arr_o : out cell_array_t;
+        count_i      : in  unsigned(log2_ceil(one_s_max_c)-1 downto 0)
     );
 end entity;
 
@@ -98,5 +102,12 @@ begin
 
     -- Output board array
     board_arr_o <= board_arr_s;
+
+    -- Blinky output: all cells unmodified but that one pointed by cursor, which will be driven by the counter msb
+    process (all)
+    begin
+        blinky_arr_o <= board_arr_s;
+        blinky_arr_o(cursor_s.posX, cursor_s.posY).state <= count_i(log2_ceil(one_s_max_c)-1);
+    end process;    
 
 end architecture;

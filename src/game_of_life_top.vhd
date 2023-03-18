@@ -55,17 +55,19 @@ architecture behavioural of game_of_life_top is
 
     -- Board init module
     signal cells_board_init : cell_array_t;
+    signal cells_blinky_s   : cell_array_t;
     signal board_init_cmd_s : board_init_cmd_t;
 
     -- Cells
     signal next_iter_s     : std_logic;
     signal next_gen_done_s : std_logic;
     signal cells_lastgen_s : cell_array_t;
-    constant gen_ctr_ticks_c : integer := 1000000; -- 1M@1MHz = 1 s
-    signal gen_count_s       : integer;    
+    constant one_s_max_c : integer := 1000000; -- 1M@1MHz = 1 s
+    signal one_s_count_s     : integer;    
     
     -- Muxs
-    signal cells_mux_s : cell_array_t;
+    signal cells_mux_s  : cell_array_t;
+    signal cells_mux2_s : cell_array_t;
 
     -- max7219
     signal max7219_cmd_s      : std_logic_vector(log2_ceil(num_macro_cmds_c)-1 downto 0);
@@ -105,12 +107,14 @@ begin
             end if;
         end if;
     end process;
+
+    -- 1-second timer (for timing between generations in continuous mode and for blinky output during board init)
     process (clk_i)
     begin
         if rising_edge(clk_i) then
-            if    state_s = st_reset              then gen_count_s <= 0;
-            elsif gen_count_s < gen_ctr_ticks_c-1 then gen_count_s <= gen_count_s+1;
-            else                                       gen_count_s <= 0;
+            if    state_s = st_reset            then one_s_count_s <= 0;
+            elsif one_s_count_s < one_s_max_c-1 then one_s_count_s <= one_s_count_s+1;
+            else                                     one_s_count_s <= 0;
             end if;
         end if;
     end process;    
@@ -153,11 +157,15 @@ begin
     end process;
 
     board_init_inst : entity work.board_init
-        port map (
-            clk_i       => clk_i,
-            rst_i       => rst_i,
-            cmd_i       => board_init_cmd_s,
-            board_arr_o => cells_board_init
+        generic map (
+            one_s_max_c  => one_s_max_c
+        ) port map (
+            clk_i        => clk_i,
+            rst_i        => rst_i,
+            cmd_i        => board_init_cmd_s,
+            board_arr_o  => cells_board_init,
+            blinky_arr_o => cells_blinky_s,
+            count_i      => to_unsigned(one_s_count_s, log2_ceil(one_s_max_c))
         );
         
     -- Cells
@@ -182,6 +190,16 @@ begin
         end if;
     end process;
 
+    -- Mux (select between blinky output (during board init) and normal output)
+    process (clk_i)
+    begin
+        if rising_edge(clk_i) then
+            if (state_s = st_board_init) then cells_mux2_s <= cells_blinky_s;
+            else                              cells_mux2_s <= cells_mux_s;
+            end if;
+        end if;
+    end process;
+
     -- max7219
     process (clk_i)
     begin
@@ -200,7 +218,7 @@ begin
         end if;
     end process;
     max7219_cmd_s <= "00" when (state_s = st_reset or state_s = st_hw_init) else "01"; -- initialize during reset. @todo: replace macro_cmd_i input type by max7219_macro_cmd_t type and use commands instead of "00" or "01"
-    max7219_data_all_s <= cells_array_to_slv(cells_mux_s);
+    max7219_data_all_s <= cells_array_to_slv(cells_mux2_s);
     max7219_wrapper_inst : entity work.max7219_wrapper
         port map (
             clk_i            => clk_i,
