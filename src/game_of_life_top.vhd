@@ -90,7 +90,7 @@ begin
                     when st_hw_init    => if    (max7219_done_s = '1'                                  ) then state_s <= st_board_init ; end if;
                     when st_board_init => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = long_press ) then state_s <= st_pause      ; end if;
                     when st_pause      => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = short_press) then state_s <= st_run_iter;
-                                          elsif (gen_count_s = 0 and mode_continuous_s                 ) then state_s <= st_run_iter;
+                                          elsif (one_s_count_s = 0 and mode_continuous_s               ) then state_s <= st_run_iter;
                                           elsif (buttons_evnts_s(buttons_ids_c.butDOWN  ) = long_press ) then state_s <= st_board_init ; end if;
                     when st_run_iter   => if    (next_gen_done_s = '1' or mode_continuous_s            ) then state_s <= st_pause      ; end if;
                 end case;
