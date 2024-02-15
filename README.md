@@ -1,5 +1,9 @@
 # GameOfLife_VHDL
 
+!!!!
+
+NOTE: @todo adapt to new features (video and keyboard)
+
 ## Table of contents
 <ol>
     <li><a href="#About-The-Project">About the project</a></li>
