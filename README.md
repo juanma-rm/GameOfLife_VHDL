@@ -1,9 +1,5 @@
 # GameOfLife_VHDL
 
-!!!!
-
-NOTE: @todo adapt to new features (video and keyboard)
-
 ## Table of contents
 <ol>
     <li><a href="#About-The-Project">About the project</a></li>
@@ -15,7 +11,7 @@ NOTE: @todo adapt to new features (video and keyboard)
 
 ## About the project <a name="About-The-Project"></a>
 
-https://user-images.githubusercontent.com/41286765/226129758-f1eec1a3-0e8d-4829-b4d0-ad51c01c9ed5.mp4
+<img src="pics/game_sample.gif" alt="game_sample" width="700">
 
 <br><p align="justify">
 This project consists in a VHDL version of Game of Life, which could be considered more of an experiment and was conceived by mathematician John Conway. The main idea is described as follows. There is a bidimensional grid (let's call it the board, the world, the space dimensions) inhabited by cells (each taking one single space unit) that may born, die or keep its state according to the number of alive neighbors at the given moment. For each new generation (minimum time unit, time resolution, Planck's interval, whatever), each cell's fate shall be determined by the following set of simple rules:
@@ -43,10 +39,8 @@ Summary: the motivation for this project is much simpler than all the previous b
 </p>
 
 <p align="justify">
-Now you could  be about to question if I am in my senses as I have used a Kria KV260 board (a bit over-powered for this task); well, let me justify that: 1) I like reusing my current stuff (small attempt to minimize the amount of electronics components in my drawers) and 2) this was to me an introductory project to get used with Kria KV260 system in terms of programmable logic, pmod, Vivado, logic, constraints... I could have stopped at 3% of this project as I had already worked with Zynq US+ architecture before and only needed to test some basic bitstream and PS (processing system) initialization to check everything was up and running, but I get fun doing this :)
+Now you could be about to question if I am in my senses as I have used a Kria KV260 board (a bit over-powered for this task); well, let me justify that: 1) I like reusing my current stuff (small attempt to minimize the amount of electronics components in my drawers) and 2) this was to me an introductory project to get used with Kria KV260 system in terms of programmable logic, pmod, Vivado, logic, constraints... I could have stopped at 3% of this project as I had already worked with Zynq US+ architecture before and only needed to test some basic bitstream and PS (processing system) initialization to check everything was up and running, but I get fun doing this :)
 </p>
-
-<img src="pics/pic1.png" alt="drawing" width="620">
 
 ## Usage <a name="Usage"></a>
 
@@ -55,23 +49,15 @@ There are three stages:
 2) Pause
 3) Run generation
 
-<p align="justify">
-There are five buttons that allows the user to interact with the system: CENTER/UP/DOWN/LEFT/RIGHT. For each button, there are up to two kind of events: short and long press (the latter  requires a minimum duration of 2 seconds for the press).
-</p>
-
 The program starts at Board initialization.
-* <p align="justify">At this point, the user can select which cells start alive (LED ON) and which start dead (LED OFF). The LED blinking indicates the current position targeted. Buttons UP/DOWN/LEFT/RIGHT (short press) can be used to navigate in the LED matrix CENTER short press can be used to toggle the current cell state.
-* Long press in CENTER shall cause the system to switch to Pause stage.</p>
+* At this point, the user can select which cells start alive (represented in white) and which start dead (represented in dark grey). The blinking cell indicates the current position targeted. Arrow keys `UP`/`DOWN`/`LEFT`/`RIGHT` can be used to navigate through the board; `SPACE` can be used to toggle the current cell state.
+* `ENTER` shall cause the system to switch to Pause stage.
 
-<p align="justify">
-At Pause stage, the program shall go to Run generation if either CENTER is pressed shortly or CONTINUOUS MODE is enabled. If DOWN is pressed (long press), the system shall switch to Board initialization stage, keeping the last array distribution selected by the user when the stage was left the last time.
-</p>
+At Pause stage, the program shall go to Run generation if either `SPACE` is pressed shortly or CONTINUOUS MODE is enabled. If `BACKSPACE` is pressed, the system shall switch to Board initialization stage, keeping the last array distribution selected by the user when the stage was left the last time.
 
-<p align="justify">
 At Run generation, the program shall calculate and update the matrix with the cell distribution corresponding to a new generation based on the previous state and the rules that define the game. Right after, it shall go to Pause stage (going there and back if CONTINUOUS MODE is enabled).
-</p>
 
-CONTINUOUS MODE can be toggled by pressing UP (long press) at Pause or Run generation stages.
+CONTINUOUS MODE can be toggled by pressing `c` at Pause or Run generation stages.
 
 The game behavior is shown in the diagram below:
 
@@ -79,25 +65,23 @@ The game behavior is shown in the diagram below:
 
 ## HW/SW Design <a name="Design"></a>
 
+Note: this version is an upgrade of [this one](https://github.com/juanma-rm/GameOfLife_VHDL/tree/v1_max7219_and_buttons), where I used a LED array and buttons instead of an external HDMI screen and a USB keyboard.
+
 * HW:
     * AMD/Xilinx Kria KV260 (based on K26 SOM and Zynq Ultrascale+ architecture)
-    * MAX7219 8x8 LED array
-    * 5 buttons + 5 resistors (pull down)
-    * 5V power supply + 74hct08n (AND IC to convert KV260's 3.3V pmod outputs to MAX7219 5V inputs) 
+    * HDMI or DisplayPort (DP) external screen, connected to HDMI or DP port in the KV260 board
+    * USB keyboard connected to the KV260 board.
 * Language: VHDL
-* Simulators: GTKWave, Modelsim
-* Tools: Vivado, Vitis, VSCode + Teros HDL
-
-<img src="pics/hw_wiring.png" alt="drawing" width="620">
+* Simulators: GHDL/GTKWave, Modelsim
+* Tools: Vivado/Vitis 2022.1 , VSCode + Teros HDL
 
 RTL design / top diagram:  
 <img src="pics/top_bd.png" alt="drawing" width="620">  
-RTL design / button handler diagram:  
-<img src="pics/button_handler.png" alt="drawing" width="620">
+
+In the ARM Cortex A53 (PS), Ubuntu 22.04 LTS is running and a Pynq/Python -based application takes charge of 1) moving frames generated in the PL to the DP controller (so that we can see the board in the external screen) and 2) attending keyboard events to be sent to the PL to update the cells state.
 
 ## Potential updates <a name="pending_tasks"></a>
 
-* Replace IO by HDMI and keyboard, perhaps involving PS
 * Randomly generated initial cell distribution
 
 ## Contact <a name="Contact"></a>
