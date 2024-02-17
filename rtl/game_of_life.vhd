@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------
---! game_of_life_top.vhd
+--! game_of_life.vhd
 --! 
 --! @todo description
 --! 
@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.utils_pkg.all;
 
-use work.max7219_wrapper_pkg.all;
 use work.button_handler_pkg.all;
 use work.board_init_pkg.all;
 use work.cells_pkg.all;
@@ -26,14 +25,20 @@ use work.cells_pkg.all;
 -- Entity
 ----------------------------------------------------------------------------------
 
-entity game_of_life_top is
+entity game_of_life is
+    generic (
+        ratio_expansion_c    : positive := 40; -- should be an integer so that frame_resolution = board_size * ratio_expansion_c (e.g. for 40 and 1280x720: 720 = 18 * 40, 1280 = 32 * 40)
+        pixel_width_c        : positive := 24
+    );
     port (
         clk_i         : in  std_logic;
         rst_i         : in  std_logic;
-        max7219_clk_o : out std_logic;
-        max7219_din_o : out std_logic;
-        max7219_csn_o : out std_logic := '1';
-        buttons_i     : in std_logic_vector(num_buttons_c-1 downto 0)
+        buttons_i     : in  std_logic_vector(num_buttons_c-1 downto 0);
+        m_axis_tready : in  std_logic;
+        m_axis_tvalid : out std_logic;
+        m_axis_tdata  : out std_logic_vector(pixel_width_c-1 downto 0);
+        m_axis_tlast  : out std_logic;
+        m_axis_tuser  : out std_logic        
     );
 end entity;
 
@@ -41,10 +46,10 @@ end entity;
 -- Architecture
 ----------------------------------------------------------------------------------
 
-architecture behavioural of game_of_life_top is
+architecture behavioural of game_of_life is
 
     -- Main FSM
-    type state_t is (st_reset, st_hw_init, st_board_init, st_pause, st_run_iter);
+    type state_t is (st_reset, st_board_init, st_pause, st_run_iter);
     signal state_s : state_t;
     signal mode_continuous_s : boolean;
     signal first_pause       : boolean;
@@ -62,20 +67,20 @@ architecture behavioural of game_of_life_top is
     signal next_iter_s     : std_logic;
     signal next_gen_done_s : std_logic;
     signal cells_lastgen_s : cell_array_t;
-    constant one_s_max_c : integer := 1000000; -- 1M@1MHz = 1 s
-    signal one_s_count_s     : integer;    
+    -- constant one_s_max_c : integer := 1000000; -- 1M@1MHz = 1 s
+    constant one_s_max_c : integer := 300000000; -- 300M@300MHz = 1 s
+    signal one_s_count_s     : integer; -- Used to trigger a new generation
     
     -- Muxs
     signal cells_mux_s  : cell_array_t;
     signal cells_mux2_s : cell_array_t;
 
-    -- max7219
-    signal max7219_cmd_s      : std_logic_vector(log2_ceil(num_macro_cmds_c)-1 downto 0);
-    signal max7219_done_s     : std_logic;
-    signal max7219_data_all_s : std_logic_vector(num_segments_c*word_width_c - 1 downto 0);
-    signal max7219_start_s    : std_logic;
-    constant refresh_ticks_c  : integer := 100000; -- 100k@1MHz = 100 ms
-    signal refresh_count_s    : integer;
+    -- Video
+    signal video_done_s     : std_logic;
+    signal video_start_s    : std_logic;
+    -- constant refresh_ticks_c  : integer := 100000; -- 100k@1MHz = 100 ms
+    constant refresh_ticks_c  : integer := 30000000; -- 30000k@300MHz = 100 ms
+    signal refresh_count_s    : integer; -- Used to refresh the cells board within a same generation (mainly for when it is blinking)
     
 begin
 
@@ -86,8 +91,7 @@ begin
             if    rst_i = '1'                                                                            then state_s <= st_reset;
             else
                 case state_s is 
-                    when st_reset      =>                                                                     state_s <= st_hw_init;
-                    when st_hw_init    => if    (max7219_done_s = '1'                                  ) then state_s <= st_board_init ; end if;
+                    when st_reset      =>                                                                     state_s <= st_board_init;
                     when st_board_init => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = long_press ) then state_s <= st_pause      ; end if;
                     when st_pause      => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = short_press) then state_s <= st_run_iter;
                                           elsif (one_s_count_s = 0 and mode_continuous_s               ) then state_s <= st_run_iter;
@@ -200,7 +204,8 @@ begin
         end if;
     end process;
 
-    -- max7219
+    -- Video output
+
     process (clk_i)
     begin
         if rising_edge(clk_i) then
@@ -210,28 +215,32 @@ begin
             end if;
         end if;
     end process;
-    process (state_s, refresh_count_s)
+
+    process (refresh_count_s, video_done_s)
     begin
-        max7219_start_s <= '0';
-        if    state_s = st_hw_init and max7219_done_s = '1' then max7219_start_s <= '1';
-        elsif refresh_count_s = 0 and max7219_done_s = '1'  then max7219_start_s <= '1';
+        if refresh_count_s = 0 and video_done_s = '1'  then video_start_s <= '1';
+        else                                                video_start_s <= '0';
         end if;
     end process;
-    max7219_cmd_s <= "00" when (state_s = st_reset or state_s = st_hw_init) else "01"; -- initialize during reset. @todo: replace macro_cmd_i input type by max7219_macro_cmd_t type and use commands instead of "00" or "01"
-    max7219_data_all_s <= cells_array_to_slv(cells_mux2_s);
-    max7219_wrapper_inst : entity work.max7219_wrapper
+
+    board_to_frame_inst : entity work.board_to_frame
+        generic map (
+            board_rows_c        => num_rows_c,
+            board_cols_c        => num_cols_c,
+            ratio_expansion_c   => ratio_expansion_c,
+            pixel_width_c       => pixel_width_c
+        )
         port map (
-            clk_i            => clk_i,
-            rst_i            => rst_i,
-            macro_cmd_i      => max7219_cmd_s,
-            data_all_i       => max7219_data_all_s,
-            addr_i           => (others => '0'),
-            data_i           => (others => '0'),
-            start_i          => max7219_start_s,
-            macro_cmd_done_o => max7219_done_s,
-            max7219_clk_o    => max7219_clk_o,
-            max7219_din_o    => max7219_din_o,
-            max7219_csn_o    => max7219_csn_o
+            clk_i           => clk_i,
+            rst_i           => rst_i,
+            data_all_i      => cells_array_to_slv(cells_mux2_s),
+            start_i         => video_start_s,
+            done_o          => video_done_s,
+            m_axis_tready   => m_axis_tready,
+            m_axis_tvalid   => m_axis_tvalid,
+            m_axis_tdata    => m_axis_tdata,
+            m_axis_tlast    => m_axis_tlast,
+            m_axis_tuser    => m_axis_tuser
         );
 
 end architecture;
