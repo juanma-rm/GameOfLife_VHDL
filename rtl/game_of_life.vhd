@@ -72,7 +72,7 @@ architecture behavioural of game_of_life is
     signal next_gen_done_s : std_logic;
     signal cells_lastgen_s : cell_array_t;
     -- constant one_s_max_c : integer := 1000000; -- 1M@1MHz = 1 s
-    constant one_s_max_c : integer := 300000000; -- 300M@300MHz = 1 s
+    constant one_s_max_c : integer := 150000000; -- 150M@300MHz = 0.5 s
     signal one_s_count_s     : integer; -- Used to trigger a new generation
     
     -- Muxs
@@ -83,7 +83,7 @@ architecture behavioural of game_of_life is
     signal video_done_s     : std_logic;
     signal video_start_s    : std_logic;
     -- constant refresh_ticks_c  : integer := 100000; -- 100k@1MHz = 100 ms
-    constant refresh_ticks_c  : integer := 30000000; -- 30000k@300MHz = 100 ms
+    constant refresh_ticks_c  : integer := 15000000; -- 30000k@300MHz = 50 ms
     signal refresh_count_s    : integer; -- Used to refresh the cells board within a same generation (mainly for when it is blinking)
     
 begin
