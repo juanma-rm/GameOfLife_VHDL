@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.utils_pkg.all;
 
-use work.button_handler_pkg.all;
+use work.key_handler_pkg.all;
 use work.board_init_pkg.all;
 use work.cells_pkg.all;
 
@@ -33,7 +33,11 @@ entity game_of_life is
     port (
         clk_i         : in  std_logic;
         rst_i         : in  std_logic;
-        buttons_i     : in  std_logic_vector(num_buttons_c-1 downto 0);
+        s_axis_tready : out std_logic;
+        s_axis_tvalid : in  std_logic;
+        s_axis_tdata  : in  std_logic_vector(32-1 downto 0);
+        s_axis_tlast  : in  std_logic;
+        s_axis_tuser  : in  std_logic;
         m_axis_tready : in  std_logic;
         m_axis_tvalid : out std_logic;
         m_axis_tdata  : out std_logic_vector(pixel_width_c-1 downto 0);
@@ -54,9 +58,9 @@ architecture behavioural of game_of_life is
     signal mode_continuous_s : boolean;
     signal first_pause       : boolean;
 
-    -- Buttons 
-    signal buttons_evnts_s : events_arr_t;
-    signal event_read_s    : std_logic_vector(work.button_handler_pkg.num_buttons_c-1 downto 0);
+    -- Keys 
+    signal keys_evnts_s : events_arr_t;
+    signal event_read_s    : std_logic_vector(work.key_handler_pkg.num_keys_c-1 downto 0);
 
     -- Board init module
     signal cells_board_init : cell_array_t;
@@ -88,15 +92,15 @@ begin
     process (clk_i)
     begin
         if rising_edge(clk_i) then
-            if    rst_i = '1'                                                                            then state_s <= st_reset;
+            if    rst_i = '1'                                                                      then state_s <= st_reset;
             else
                 case state_s is 
-                    when st_reset      =>                                                                     state_s <= st_board_init;
-                    when st_board_init => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = long_press ) then state_s <= st_pause      ; end if;
-                    when st_pause      => if    (buttons_evnts_s(buttons_ids_c.butCENTER) = short_press) then state_s <= st_run_iter;
-                                          elsif (one_s_count_s = 0 and mode_continuous_s               ) then state_s <= st_run_iter;
-                                          elsif (buttons_evnts_s(buttons_ids_c.butDOWN  ) = long_press ) then state_s <= st_board_init ; end if;
-                    when st_run_iter   => if    (next_gen_done_s = '1' or mode_continuous_s            ) then state_s <= st_pause      ; end if;
+                    when st_reset      =>                                                               state_s <= st_board_init;
+                    when st_board_init => if    (keys_evnts_s(keys_ids_c.key_enter) = pressed    ) then state_s <= st_pause      ; end if;
+                    when st_pause      => if    (keys_evnts_s(keys_ids_c.key_space) = pressed    ) then state_s <= st_run_iter;
+                                          elsif (one_s_count_s = 0 and mode_continuous_s         ) then state_s <= st_run_iter;
+                                          elsif (keys_evnts_s(keys_ids_c.key_backspace) = pressed) then state_s <= st_board_init ; end if;
+                    when st_run_iter   => if    (next_gen_done_s = '1' or mode_continuous_s      ) then state_s <= st_pause      ; end if;
                 end case;
             end if;
         end if;
@@ -106,8 +110,8 @@ begin
     process (clk_i) 
     begin
         if rising_edge(clk_i) then
-            if    rst_i = '1'                                                                                         then mode_continuous_s <= false;
-            elsif (state_s = st_pause or state_s = st_run_iter) and buttons_evnts_s(buttons_ids_c.butUP) = long_press then mode_continuous_s <= not mode_continuous_s;
+            if    rst_i = '1'                                                                                then mode_continuous_s <= false;
+            elsif (state_s = st_pause or state_s = st_run_iter) and keys_evnts_s(keys_ids_c.key_c) = pressed then mode_continuous_s <= not mode_continuous_s;
             end if;
         end if;
     end process;
@@ -133,14 +137,18 @@ begin
         end if;
     end process;
 
-    -- Buttons
+    -- Keys
     event_read_s <= (others => '1'); -- events are always read in one cycle (as soon as they are available)
-    button_handler_inst : entity work.button_handler
+    key_handler_inst : entity work.key_handler
         port map (
             clk_i           => clk_i,
             rst_i           => rst_i,
-            buttons_raw_i   => buttons_i,
-            buttons_evnts_o => buttons_evnts_s,
+            s_axis_tready   => s_axis_tready,
+            s_axis_tvalid   => s_axis_tvalid,
+            s_axis_tdata    => s_axis_tdata,
+            s_axis_tlast    => s_axis_tlast,
+            s_axis_tuser    => s_axis_tuser,
+            keys_evnts_o    => keys_evnts_s,
             event_read_i    => event_read_s
         );
 
@@ -149,13 +157,13 @@ begin
     process (clk_i)
     begin
         if rising_edge(clk_i) then
-            if    rst_i = '1'                                                                        then board_init_cmd_s <= nop;
-            elsif state_s = st_board_init and buttons_evnts_s(buttons_ids_c.butUP)     = short_press then board_init_cmd_s <= cursor_move_U;
-            elsif state_s = st_board_init and buttons_evnts_s(buttons_ids_c.butDOWN)   = short_press then board_init_cmd_s <= cursor_move_D;
-            elsif state_s = st_board_init and buttons_evnts_s(buttons_ids_c.butLEFT)   = short_press then board_init_cmd_s <= cursor_move_L;
-            elsif state_s = st_board_init and buttons_evnts_s(buttons_ids_c.butRIGHT)  = short_press then board_init_cmd_s <= cursor_move_R;
-            elsif state_s = st_board_init and buttons_evnts_s(buttons_ids_c.butCENTER) = short_press then board_init_cmd_s <= toggle_cell;
-            else                                                                                          board_init_cmd_s <= nop;
+            if    rst_i = '1'                                                              then board_init_cmd_s <= nop;
+            elsif state_s = st_board_init and keys_evnts_s(keys_ids_c.key_up)    = pressed then board_init_cmd_s <= cursor_move_U;
+            elsif state_s = st_board_init and keys_evnts_s(keys_ids_c.key_down)  = pressed then board_init_cmd_s <= cursor_move_D;
+            elsif state_s = st_board_init and keys_evnts_s(keys_ids_c.key_left)  = pressed then board_init_cmd_s <= cursor_move_L;
+            elsif state_s = st_board_init and keys_evnts_s(keys_ids_c.key_right) = pressed then board_init_cmd_s <= cursor_move_R;
+            elsif state_s = st_board_init and keys_evnts_s(keys_ids_c.key_space) = pressed then board_init_cmd_s <= toggle_cell;
+            else                                                                                board_init_cmd_s <= nop;
             end if;
         end if;
     end process;
