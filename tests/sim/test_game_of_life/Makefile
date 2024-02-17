@@ -39,7 +39,7 @@ SRC_PATH := $(WORKSPACE_PATH)/rtl
 VHDL_SOURCES			+= $(SRC_PATH)/$(DUT).vhd
 VHDL_SOURCES			+= $(SRC_PATH)/board_init.vhd
 VHDL_SOURCES			+= $(SRC_PATH)/board_to_frame.vhd
-VHDL_SOURCES			+= $(SRC_PATH)/button_handler.vhd
+VHDL_SOURCES			+= $(SRC_PATH)/key_handler.vhd
 VHDL_SOURCES			+= $(SRC_PATH)/cells.vhd
 VHDL_SOURCES			+= $(SRC_PATH)/utils_pkg.vhd
 

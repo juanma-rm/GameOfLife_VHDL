@@ -25,12 +25,25 @@ from cocotbext.eth import XgmiiFrame, XgmiiSource, XgmiiSink
 
 # AXI
 from cocotbext.axi import AxiBus, AxiRam, AxiLiteMaster, AxiLiteBus
+from cocotbext.axi import (AxiStreamBus, AxiStreamSource, AxiStreamSink, AxiStreamMonitor)
 
 ###################################################################################
 # TB class (common for all tests)
 ###################################################################################
 
 class TB:
+
+    key_mapping = {
+        'esc'       : 0,
+        'up'        : 1,
+        'down'      : 2,
+        'left'      : 3,
+        'right'     : 4,
+        'space'     : 5,
+        'c'         : 6,
+        'enter'     : 7,
+        'backspace' : 8
+    }
 
     def __init__(self, dut):
         self.dut = dut
@@ -39,6 +52,9 @@ class TB:
         self.log.setLevel(logging.DEBUG)
 
         cocotb.start_soon(Clock(dut.clk_i, 1000, units="ns").start())
+        
+        self.s_axis_keyboard = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.clk_i, dut.rst_i)
+        self.m_axis_video = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.clk_i, dut.rst_i)
 
     async def init(self):
         # Reset
@@ -62,47 +78,42 @@ async def run_test_test_game_of_life(dut):
     # Initialize TB
     tb = TB(dut)
     await tb.init()
-    
-    tb.dut.m_axis_tready.value = 1
-    
-    # To visualise changes w/o long simulations, set the constants in game_of_life.vhd as following:
-    # constant one_s_max_c : integer := 1000;
-    # constant refresh_ticks_c  : integer := 100;
-    
-    # @todo proper stimulation
-    
-    # Short center (> 50 ms)
-    # tb.dut.buttons_i.value = 0x1
-    await Timer(1, units='ms')
-    # buttons_s(0) <= '1'; wait for 60 ms;   buttons_s(0) <= '0'; wait for 20 us; 
-    # # Short down (> 50 ms)
-    # buttons_s(2) <= '1'; wait for 60 ms;   buttons_s(2) <= '0'; wait for 20 us; 
-    # # Short center (> 50 ms)
-    # buttons_s(0) <= '1'; wait for 60 ms;   buttons_s(0) <= '0'; wait for 20 us; 
-    # # Long center (> 50 ms)
-    # buttons_s(0) <= '1'; wait for 2050 ms;   buttons_s(0) <= '0'; wait for 20 us;     
-    
-    # # Pass several generations
-    # # Short center (< 50 ms)
-    # buttons_s(0) <= '1'; wait for 60 ms;   buttons_s(0) <= '0'; wait for 20 us; 
-    # # Short center (< 50 ms)
-    # buttons_s(0) <= '1'; wait for 60 ms;   buttons_s(0) <= '0'; wait for 20 us; 
-    # # Short center (< 50 ms)
-    # buttons_s(0) <= '1'; wait for 60 ms;   buttons_s(0) <= '0'; wait for 20 us; 
-    # # Short center (< 50 ms)
-    # buttons_s(0) <= '1'; wait for 60 ms;   buttons_s(0) <= '0'; wait for 20 us;                                    
 
+    # To visualise changes w/o long simulations, set the constants in game_of_life.vhd as following:
+    # constant one_s_max_c : integer := 100;
+    # constant refresh_ticks_c  : integer := 100;
+   
+    # Initialise the board by toggling the first row (expected to have 4 pixels)
+    await Timer(4000, units='ns')
+    for col in range(4):
+        await tb.s_axis_keyboard.send(tb.key_mapping['space'].to_bytes(4, byteorder='little'))
+        await tb.s_axis_keyboard.wait()
+        await tb.s_axis_keyboard.send(tb.key_mapping['right'].to_bytes(4, byteorder='little'))
+        await tb.s_axis_keyboard.wait()
+    await Timer(4000, units='ns')
     
+    # Confirm board state by pressing enter
+    await tb.s_axis_keyboard.send(tb.key_mapping['enter'].to_bytes(4, byteorder='little'))
+    await tb.s_axis_keyboard.wait()
+    await Timer(4000, units='ns')
     
-    # for _ in range(10): await RisingEdge(tb.dut.clk_i)
-    # tb.dut.start_i.value = 1
-    # for _ in range(8*16+20): await RisingEdge(tb.dut.clk_i) # Wait for 1/2 frame aprox
-    # # Test backpressure
-    # tb.dut.m_axis_tready.value = 0
-    # for _ in range(10): await RisingEdge(tb.dut.clk_i)
-    # # Test the rest of the frame
-    # tb.dut.m_axis_tready.value = 1
-    # for _ in range(8*16): await RisingEdge(tb.dut.clk_i)
+    # Toggle continuous mode (enabling it)
+    await tb.s_axis_keyboard.send(tb.key_mapping['c'].to_bytes(4, byteorder='little'))
+    await tb.s_axis_keyboard.wait()
+    await Timer(10000, units='ns')    
+
+    # Let cells evolve in continuous mode
+    await tb.s_axis_keyboard.send(tb.key_mapping['space'].to_bytes(4, byteorder='little'))
+    await tb.s_axis_keyboard.wait()
+    # Wait for 10 generations (2 rows 4 cols per each data received at m_axis_video)
+    for generation in range(10*2*4):
+        data = await tb.m_axis_video.recv()
+        print(data.tdata)
+    
+    # Back to initialisation stage
+    await tb.s_axis_keyboard.send(tb.key_mapping['backspace'].to_bytes(4, byteorder='little'))
+    await tb.s_axis_keyboard.wait()
+    await Timer(10000, units='ns')
     
 ###################################################################################
 # cocotb-test flow (alternative to Makefile flow)
