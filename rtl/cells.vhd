@@ -21,7 +21,7 @@ package cells_pkg is
     type cell_t is record
         state   : std_logic;
     end record;
-    type cell_array_t is array (0 to num_rows_c, 0 to num_cols_c) of cell_t;
+    type cell_array_t is array (0 to num_rows_c-1, 0 to num_cols_c-1) of cell_t;
     function cells_array_init (constant value : in std_logic) return cell_array_t;
     procedure cells_array_set (signal cells_arr : inout cell_array_t; constant value : in std_logic);
     function cells_array_to_slv (constant cells_arr : in cell_array_t) return std_logic_vector;
