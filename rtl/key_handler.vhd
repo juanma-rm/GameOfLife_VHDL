@@ -88,7 +88,7 @@ begin
             if (rst_i = '1') then
                 key_id_reg <= 0;
                 event_is_pending <= '0';
-            elsif (s_axis_consumed = '1' and s_axis_tlast = '1') then
+            elsif (s_axis_consumed = '1' and s_axis_tlast = '1' and to_integer(unsigned(s_axis_tdata)) < num_keys_c) then
                 key_id_reg <= to_integer(unsigned(s_axis_tdata));
                 event_is_pending <= '1';
             elsif (clear_events = '1') then
