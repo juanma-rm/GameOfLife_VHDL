@@ -107,7 +107,9 @@ begin
     process (all)
     begin
         blinky_arr_o <= board_arr_s;
-        blinky_arr_o(cursor_s.posX, cursor_s.posY).state <= count_i(log2_ceil(one_s_max_c)-1);
+        if (count_i < one_s_max_c/2) then blinky_arr_o(cursor_s.posX, cursor_s.posY).state <= '0';
+        else                              blinky_arr_o(cursor_s.posX, cursor_s.posY).state <= '1';
+        end if;
     end process;    
 
 end architecture;
