@@ -74,7 +74,7 @@ architecture behavioural of board_to_frame is
     constant colour_blue_c  : std_logic_vector(pixel_width_c-1 downto 0) := x"FF" & x"00" & x"00";
     constant colour_red_c   : std_logic_vector(pixel_width_c-1 downto 0) := x"00" & x"FF" & x"00";
     constant colour_green_c : std_logic_vector(pixel_width_c-1 downto 0) := x"00" & x"00" & x"FF";
-    constant colour_grey1_c : std_logic_vector(pixel_width_c-1 downto 0) := x"80" & x"80" & x"80";
+    constant colour_grey1_c : std_logic_vector(pixel_width_c-1 downto 0) := x"40" & x"40" & x"40";
     constant colour_black_c : std_logic_vector(pixel_width_c-1 downto 0) := x"00" & x"00" & x"00";
     constant colour_white_c : std_logic_vector(pixel_width_c-1 downto 0) := x"FF" & x"FF" & x"FF";
     constant colour_alive_c : std_logic_vector(pixel_width_c-1 downto 0) := colour_white_c;
