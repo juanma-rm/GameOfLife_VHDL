@@ -48,7 +48,7 @@ SRC_VHDL_FILES		+= $(SRC_PATH)/pwm.vhd # Cannot be VHDL 2008 as it is instantiat
 
 SRC_VHDL08_FILES	+= $(SRC_PATH)/board_init.vhd
 SRC_VHDL08_FILES	+= $(SRC_PATH)/board_to_frame.vhd
-SRC_VHDL08_FILES	+= $(SRC_PATH)/button_handler.vhd
+SRC_VHDL08_FILES	+= $(SRC_PATH)/key_handler.vhd
 SRC_VHDL08_FILES	+= $(SRC_PATH)/cells.vhd
 SRC_VHDL08_FILES	+= $(SRC_PATH)/utils_pkg.vhd
 SRC_VHDL08_FILES 	+= $(SRC_PATH)/utils_pkg.vhd

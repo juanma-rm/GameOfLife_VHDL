@@ -89,6 +89,10 @@ set ps_reset_300M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5
 
 set axi_intc_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc:4.1 axi_intc_0 ]
 set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
+set_property -dict [list \
+    CONFIG.NUM_PORTS {3}
+] $xlconcat_0
+
 
 ##############################################################################
 # AXI Interconnects
@@ -97,12 +101,12 @@ set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconc
 set axi_interc_hpm0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_interc_hpm0 ]
 set_property -dict [ list \
     CONFIG.NUM_SI {1} \
-    CONFIG.NUM_MI {2} \
+    CONFIG.NUM_MI {3} \
 ] $axi_interc_hpm0
 
 set axi_interc_hp0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_interc_hp0 ]
 set_property -dict [ list \
-    CONFIG.NUM_SI {2} \
+    CONFIG.NUM_SI {3} \
     CONFIG.NUM_MI {1} \
 ] $axi_interc_hp0
 
@@ -145,7 +149,7 @@ set counter_wrapper [ create_bd_cell -type module -reference counter_wrapper cou
 set game_of_life [ create_bd_cell -type module -reference game_of_life game_of_life_inst ]
 
 ##############################################################################
-# Video: VDMA
+# Video PL to PS: VDMA
 ##############################################################################
 
 # AXI VDMA
@@ -154,6 +158,19 @@ set_property -dict [ list \
     CONFIG.c_s2mm_linebuffer_depth {2048} \
     CONFIG.c_s2mm_max_burst_length {128} \
 ] $axi_vdma_0
+
+##############################################################################
+# Data PS to PL: DMA
+##############################################################################
+
+# AXI DMA
+set axi_dma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_0 ]
+set_property -dict [list \
+    CONFIG.c_include_sg {0} \
+    CONFIG.c_sg_length_width {8} \
+    CONFIG.c_sg_include_stscntrl_strm {0} \
+    CONFIG.c_include_s2mm {0} \
+] $axi_dma_0
 
 ##############################################################################
 # Connections
@@ -206,8 +223,10 @@ connect_bd_net [get_bd_pins axi_intc_0/intr] [get_bd_pins xlconcat_0/dout]
 connect_bd_net [get_bd_pins game_of_life_inst/clk_i]  $clk_300M
 connect_bd_net [get_bd_pins game_of_life_inst/rst_i]  $rst_300M
 connect_bd_intf_net [get_bd_intf_pins game_of_life_inst/m_axis] [get_bd_intf_pins axi_vdma_0/S_AXIS_S2MM]
+connect_bd_intf_net [get_bd_intf_pins game_of_life_inst/s_axis] [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S]
 # Avoid Vivado from complaining when connecting axis interfaces 
 set_property CONFIG.FREQ_HZ 299997000 [get_bd_intf_pins /game_of_life_inst/m_axis]
+set_property CONFIG.FREQ_HZ 299997000 [get_bd_intf_pins /game_of_life_inst/s_axis]
 
 # AXI VDMA
 connect_bd_net [get_bd_pins axi_vdma_0/s_axi_lite_aclk] $clk_300M
@@ -221,6 +240,13 @@ connect_bd_net [get_bd_pins axi_vdma_0/s2mm_introut] [get_bd_pins xlconcat_0/In1
 connect_bd_intf_net [get_bd_intf_pins axi_vdma_0/S_AXI_LITE] [get_bd_intf_pins axi_interc_hpm0/M00_AXI]
 connect_bd_intf_net [get_bd_intf_pins axi_vdma_0/M_AXI_MM2S] [get_bd_intf_pins axi_interc_hp0/S00_AXI]
 connect_bd_intf_net [get_bd_intf_pins axi_vdma_0/M_AXI_S2MM] [get_bd_intf_pins axi_interc_hp0/S01_AXI]
+
+# AXI DMA
+connect_bd_net [get_bd_pins axi_dma_0/s_axi_lite_aclk] $clk_300M
+connect_bd_net [get_bd_pins axi_dma_0/m_axi_mm2s_aclk] $clk_300M
+connect_bd_net [get_bd_pins axi_dma_0/axi_resetn] $rstn_300M
+connect_bd_intf_net [get_bd_intf_pins axi_dma_0/S_AXI_LITE] [get_bd_intf_pins axi_interc_hpm0/M02_AXI]
+connect_bd_intf_net [get_bd_intf_pins axi_dma_0/M_AXI_MM2S] [get_bd_intf_pins axi_interc_hp0/S02_AXI]
 
 # counter_wrapper
 create_bd_port -dir O -from 7 -to 0 pmod
@@ -263,11 +289,20 @@ assign_bd_address -target_address_space /axi_vdma_0/Data_S2MM [get_bd_addr_segs 
 assign_bd_address -target_address_space /axi_vdma_0/Data_S2MM [get_bd_addr_segs zynq_ultra_ps/SAXIGP2/HP0_LPS_OCM] -force
 exclude_bd_addr_seg [get_bd_addr_segs axi_vdma_0/Data_S2MM/SEG_zynq_ultra_ps_HP0_DDR_HIGH]
 
+# AXI DMA MM2S memory map: how it sees PS
+assign_bd_address -target_address_space /axi_dma_0/Data_MM2S [get_bd_addr_segs zynq_ultra_ps/SAXIGP2/HP0_DDR_LOW] -force
+assign_bd_address -target_address_space /axi_dma_0/Data_MM2S [get_bd_addr_segs zynq_ultra_ps/SAXIGP2/HP0_QSPI] -force
+assign_bd_address -target_address_space /axi_dma_0/Data_MM2S [get_bd_addr_segs zynq_ultra_ps/SAXIGP2/HP0_LPS_OCM] -force
+exclude_bd_addr_seg [get_bd_addr_segs axi_dma_0/Data_MM2S/SEG_zynq_ultra_ps_HP0_DDR_HIGH]
+
 # PS memory map: how it sees interrupt controller
 assign_bd_address -target_address_space /zynq_ultra_ps/Data [get_bd_addr_segs axi_intc_0/S_AXI/Reg] -force
 
 # PS memory map: how it sees AXI VDMA S_AXI_LITE
 assign_bd_address -target_address_space /zynq_ultra_ps/Data [get_bd_addr_segs axi_vdma_0/S_AXI_LITE/Reg] -force
+
+# PS memory map: how it sees AXI DMA S_AXI_LITE
+assign_bd_address -target_address_space /zynq_ultra_ps/Data [get_bd_addr_segs axi_dma_0/S_AXI_LITE/Reg] -force
 
 ##############################################################################
 # Regenerate layout and validate design
