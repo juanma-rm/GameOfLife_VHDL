@@ -149,7 +149,7 @@ begin
     end process;
 
     -- cell_state_current_s takes its value from data_all_reg_s[board_row_count*ratio_expansion_c, board_col_count*ratio_expansion_c]
-    cell_state_current_s <= data_all_reg_s(board_row_count_s*board_rows_c + board_col_count_s);
+    cell_state_current_s <= data_all_reg_s(board_row_count_s*board_cols_c + board_col_count_s);
     -- pixel_current_s is set to a specific colour according to cell state
     pixel_current_s <= colour_alive_c when (cell_state_current_s = '1') else colour_dead_c;
 
