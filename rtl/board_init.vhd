@@ -55,8 +55,8 @@ end entity;
 architecture behavioural of board_init is
 
     type cursor_t is record
-        posX : integer range 0 to num_rows_c;
-        posY : integer range 0 to num_cols_c;
+        posX : integer range 0 to num_cols_c;
+        posY : integer range 0 to num_rows_c;
     end record;
     signal cursor_s : cursor_t;
     signal board_arr_s : cell_array_t;
