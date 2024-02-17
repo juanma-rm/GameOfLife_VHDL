@@ -139,6 +139,12 @@ if {$FAN_CONTROL eq "ttc0_linux"} {
 set counter_wrapper [ create_bd_cell -type module -reference counter_wrapper counter_wrapper_inst ]
 
 ##############################################################################
+# Game of Life
+##############################################################################
+
+set game_of_life [ create_bd_cell -type module -reference game_of_life game_of_life_inst ]
+
+##############################################################################
 # Video: VDMA
 ##############################################################################
 
@@ -195,6 +201,13 @@ connect_bd_net [get_bd_pins axi_intc_0/s_axi_aresetn] $rstn_300M
 connect_bd_intf_net [get_bd_intf_pins axi_intc_0/s_axi] [get_bd_intf_pins axi_interc_hpm0/M01_AXI]
 connect_bd_net [get_bd_pins axi_intc_0/irq] [get_bd_pins zynq_ultra_ps/pl_ps_irq0]
 connect_bd_net [get_bd_pins axi_intc_0/intr] [get_bd_pins xlconcat_0/dout] 
+
+# game_of_life
+connect_bd_net [get_bd_pins game_of_life_inst/clk_i]  $clk_300M
+connect_bd_net [get_bd_pins game_of_life_inst/rst_i]  $rst_300M
+connect_bd_intf_net [get_bd_intf_pins game_of_life_inst/m_axis] [get_bd_intf_pins axi_vdma_0/S_AXIS_S2MM]
+# Avoid Vivado from complaining when connecting axis interfaces 
+set_property CONFIG.FREQ_HZ 299997000 [get_bd_intf_pins /game_of_life_inst/m_axis]
 
 # AXI VDMA
 connect_bd_net [get_bd_pins axi_vdma_0/s_axi_lite_aclk] $clk_300M
